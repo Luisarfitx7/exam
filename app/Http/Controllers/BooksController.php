@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Books;
+use DataTables;
 
 class BooksController extends Controller
 {
@@ -29,7 +31,7 @@ class BooksController extends Controller
      */
     public function index()
     {
-        //
+        return view('books.index');
     }
 
     /**
@@ -37,6 +39,35 @@ class BooksController extends Controller
      */
     public function api(Request $request)
     {
-        // 
+        $books = Books::select([
+                    'books.id',
+                    'books.title',
+                    'books.category',
+                    'books.author',
+                    'books.release_date',
+                    'books.publish_date',
+        ]);
+        return Datatables::of($books)
+                        ->filter(function ($query) use ($request) {
+                            if ($request->has('title') && !empty($request->title)) {
+                                $query->where('books.title', 'like', "%{$request->get('title')}%")->first('id');
+                            }
+                            if ($request->has('category') && !empty($request->category)) {
+                                $query->where('books.category', 'like', "%{$request->get('category')}%")->first('id');
+                            }
+                            if ($request->has('author') && !empty($request->author)) {
+                                $query->where('books.author', 'like', "%{$request->get('author')}%")->first('id');
+                            }
+                        })
+                        ->addColumn('release_date1', function ($books) {
+                            return date('d/M/y', strtotime($books->release_date));
+                        })
+                        ->addColumn('publish_date1', function ($books) {
+                            return date('d/M/y', strtotime($books->release_date));
+                        })
+                        ->setRowId(function($books) {
+                            return 'companyDtRow' . $books->id;
+                        })
+                        ->toJson();
     }
 }

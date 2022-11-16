@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+Route::get('/books', [App\Http\Controllers\BooksController::class, 'index'])->middleware(['auth'])->name('books');
 
 Route::get('/dashboard', function () {
     return view('dashboard');
